@@ -14,7 +14,7 @@ export async function createEnemy(x, y) {
     let initialZ = 0;
 
     try {
-        const gltf = await loader.loadAsync('/models/enemy.glb');
+        const gltf = await loader.loadAsync(`${import.meta.env.BASE_URL}models/enemy.glb`);
         enemyModel = gltf.scene;
 
         // Positioning: Apply a rotation of model.rotation.x = Math.PI / 2;

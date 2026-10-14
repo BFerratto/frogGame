@@ -53,7 +53,7 @@ export async function createPlayer() {
     });
 
     try {
-        const gltf = await loader.loadAsync('/models/tode.glb');
+        const gltf = await loader.loadAsync(`${import.meta.env.BASE_URL}models/tode.glb`);
         playerModel = gltf.scene;
 
         // Add model rotation: model.rotation.x = Math.PI / 2;

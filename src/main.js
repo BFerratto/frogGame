@@ -96,7 +96,7 @@ async function init() {
 
         if (!houseBase) {
             try {
-                const gltf = await loader.loadAsync('/models/small_house.glb');
+                const gltf = await loader.loadAsync(`${import.meta.env.BASE_URL}models/small_house.glb`);
                 houseBase = gltf.scene;
                 houseBase.rotation.x = Math.PI / 2;
                 houseBase.scale.setScalar(50);
@@ -108,7 +108,7 @@ async function init() {
 
         if (!treeBase) {
             try {
-                const gltf = await loader.loadAsync('/models/tree.glb');
+                const gltf = await loader.loadAsync(`${import.meta.env.BASE_URL}models/tree.glb`);
                 treeBase = gltf.scene;
                 treeBase.rotation.x = Math.PI / 2;
                 treeBase.scale.setScalar(6);
