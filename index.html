@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/tode.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Game</title>
+  </head>
+  <body>
+    <div class="hud" style="position: absolute; top: 20px; left: 0; width: 100%; display: flex; justify-content: center; align-items: center; gap: 40px; color: white; font-family: sans-serif; font-size: 24px; z-index: 100; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); pointer-events: none; user-select: none;">
+      <div id="high-score" class="high-score">High Score: 0</div>
+      <div class="score">Score: 0</div>
+      <div id="kills" class="kills">Kills: 0</div>
+    </div>
+    <div id="game-over" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.8); color: white; padding: 20px; border-radius: 10px; text-align: center; font-family: sans-serif; z-index: 100;">
+      <h1>GAME OVER</h1>
+      <p id="final-score" style="font-size: 20px; margin-bottom: 20px;">Score: 0</p>
+      <button id="restart-button" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Restart</button>
+    </div>
+    <canvas class="game"></canvas>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
