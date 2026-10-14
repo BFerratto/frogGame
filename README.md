@@ -5,4 +5,6 @@
 
 Move around the square, but take care of the enemies! You can attack them with SPACE. Have fun!
 
+Playable [here](https://brubsf.itch.io/froggame)
+
 <img width="1091" height="687" alt="Screenshot 2026-10-14 at 15 48 58" src="https://github.com/user-attachments/assets/7af9ac92-5dbf-4f49-96ea-f85958cab7ab" />
