@@ -5,23 +5,29 @@ import { createRenderer } from './components/Renderer.js';
 import { createCamera } from './components/Camera.js';
 import { createPlayer } from './components/Player.js';
 import { createEnemy } from './components/Enemy.js';
+import { createMushroomPowerUp } from './components/PowerUps.js';
 
 // Scene setup
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x87ceeb);
+const defaultBgColor = new THREE.Color(0x87ceeb);
+const pinkBgColor = new THREE.Color(0xffb6c1);
+scene.background = defaultBgColor.clone();
 
 // Grid pattern
 const gridGroup = new THREE.Group();
 const gridSize = 1000;
 const divisions = 20;
 const tileSize = gridSize / divisions;
-const colors = [0x2d5a27, 0x35662e]; // Green tones
+const defaultGridColors = [0x2d5a27, 0x35662e]; // Green tones
+const pinkGridColors = [0xdb7093, 0xc71585]; // Pink tones
+const gridTiles = [];
 
 for (let i = 0; i < divisions; i++) {
     for (let j = 0; j < divisions; j++) {
+        const colorIndex = (i + j) % 2;
         const geometry = new THREE.PlaneGeometry(tileSize, tileSize);
         const material = new THREE.MeshBasicMaterial({ 
-            color: colors[(i + j) % 2],
+            color: defaultGridColors[colorIndex],
             side: THREE.DoubleSide 
         });
         const tile = new THREE.Mesh(geometry, material);
@@ -30,10 +36,25 @@ for (let i = 0; i < divisions; i++) {
             (j - divisions / 2 + 0.5) * tileSize,
             -0.1 // Slightly below ground level
         );
+        gridTiles.push({ mesh: tile, colorIndex });
         gridGroup.add(tile);
     }
 }
 scene.add(gridGroup);
+
+function setBackgroundTones(isPink) {
+    if (isPink) {
+        scene.background = pinkBgColor.clone();
+        gridTiles.forEach(({ mesh, colorIndex }) => {
+            mesh.material.color.setHex(pinkGridColors[colorIndex]);
+        });
+    } else {
+        scene.background = defaultBgColor.clone();
+        gridTiles.forEach(({ mesh, colorIndex }) => {
+            mesh.material.color.setHex(defaultGridColors[colorIndex]);
+        });
+    }
+}
 
 // Lighting
 const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
@@ -61,6 +82,7 @@ const SPAWN_LOCATIONS = [
 // Score constants
 const SCORE_PER_SECOND = 0.1;
 const SCORE_PER_KILL = 10;
+const POWER_UP_DURATION = 10; // seconds
 
 let highScore = 0;
 try {
@@ -79,6 +101,9 @@ async function init() {
 
     let enemies = [];
     let obstacles = [];
+    let powerUp = null;
+    let powerUpEndTime = 0;
+    let isPowerUpActive = false;
     let lastSpawnTime = 0;
     let gameOver = false;
     let score = 0;
@@ -88,6 +113,22 @@ async function init() {
     const loader = new GLTFLoader();
     let houseBase = null;
     let treeBase = null;
+
+    async function spawnPowerUp() {
+        if (powerUp) {
+            scene.remove(powerUp);
+            powerUp = null;
+        }
+
+        let x, y;
+        do {
+            x = (Math.random() - 0.5) * 800;
+            y = (Math.random() - 0.5) * 800;
+        } while (Math.sqrt(x * x + y * y) < 80);
+
+        powerUp = await createMushroomPowerUp(x, y);
+        scene.add(powerUp);
+    }
 
     async function spawnObstacles() {
         // Clear existing obstacles
@@ -150,6 +191,7 @@ async function init() {
     }
 
     await spawnObstacles();
+    await spawnPowerUp();
 
     const gameOverUI = document.getElementById('game-over');
     const finalScoreUI = document.getElementById('final-score');
@@ -192,12 +234,18 @@ async function init() {
             killsUI.textContent = 'Kills: 0';
         }
         
+        // Reset background color and power-up state
+        isPowerUpActive = false;
+        powerUpEndTime = 0;
+        setBackgroundTones(false);
+
         // Remove enemies from scene
         enemies.forEach(enemy => scene.remove(enemy));
         enemies = [];
         
-        // Randomize obstacles
+        // Randomize obstacles and powerup
         spawnObstacles();
+        spawnPowerUp();
         
         // Reset player position
         player.position.set(0, 0, 0);
@@ -241,6 +289,27 @@ async function init() {
                     }
                     checkHighScore(score);
                 }
+            }
+
+            // Check powerup activation by player
+            if (powerUp && !powerUp.userData.activated) {
+                const distToPowerUp = new THREE.Vector2(player.position.x, player.position.y)
+                    .distanceTo(new THREE.Vector2(powerUp.position.x, powerUp.position.y));
+                const activationDist = (player.userData.radius || 15) + (powerUp.userData.radius || 10);
+                if (distToPowerUp < activationDist) {
+                    powerUp.userData.activated = true;
+                    scene.remove(powerUp);
+                    isPowerUpActive = true;
+                    powerUpEndTime = elapsedTime + POWER_UP_DURATION;
+                    setBackgroundTones(true);
+                }
+            }
+
+            // Powerup expiration timer check
+            if (isPowerUpActive && elapsedTime >= powerUpEndTime) {
+                isPowerUpActive = false;
+                setBackgroundTones(false);
+                spawnPowerUp();
             }
 
             // Spawning logic
